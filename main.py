@@ -1,16 +1,30 @@
-# This is a sample Python script.
+from fastapi import FastAPI, status
+from pydantic import BaseModel, field_validator, ValidationError
+import re
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+app = FastAPI()
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+class Employee(BaseModel):
+    passport: str
+    role: str
+    email_adress: str
+    experience: int
+    removed_date: str
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    @field_validator('passport')
+    def validate_passport(cls, value):
+        if not re.match(r'^\d{4}-\d{6}$', value):
+            raise ValueError('Invalid passport format')
+        return value
+
+    @field_validator('email_adress')
+    def validate_email(cls, value):
+        if not re.match(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+'):
+            raise ValueError('Invalid email format')
+        return value
+
+
+@app.get("/")
+def greetigs():
+    return {'answer': 'hello, budy'}
