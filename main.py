@@ -10,7 +10,7 @@ import uvicorn
 # Создание приложения FastAPI
 app = FastAPI()
 
-# CORS
+# CORS (на ютубе мужик сказал что он очень нужен для деплоя)
 #app.add_middleware(
 #    CORSMiddleware,
 #    allow_origins=["*"],
