@@ -1,9 +1,7 @@
 from models.EmployeeModels import Employee, EmployeeResponse, EmployeeCreateUpdate
-
-
+from database.db import get_async_session
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from loguru import logger
 from typing import Optional
@@ -14,13 +12,6 @@ import uvicorn
 app = FastAPI()
 
 
-# Подключение к базе данных PostgreSQL
-#DATABASE_URL = "postgresql://employeeapi:restapi@localhost/postgres"
-#engine = create_engine(DATABASE_URL)
-#SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# Создание таблицы в базе данных
-#Base.metadata.create_all(bind=engine)
 
 # Логгирование
 @app.middleware("http://127.0.0.1:8000")
@@ -32,8 +23,8 @@ async def log_requests(request, call_next):
 # Получить информацию о сотруднике по идентификатору
 @app.get("/employee/{id}", response_model=EmployeeResponse)
 async def get_employee(id: str):
-    valid_id = EmployeeCreateUpdate.validate_passport_id(id)
-    db = SessionLocal()
+    valid_id = EmployeeCreateUpdate.validate_passport_id(id) #отдает 500 а не 422
+    db = await get_async_session()
     employee = db.query(Employee).filter(Employee.id == valid_id and Employee.is_active == True).first()
     if employee is None:
         raise HTTPException(status_code=404, detail="Employee not found")
@@ -42,7 +33,7 @@ async def get_employee(id: str):
 # Получить информацию о всех сотрудниках с пагинацией
 @app.get("/employee", response_model=list[EmployeeResponse])
 async def get_employees(current_page: int = 1, page_size: int = 10):
-    db = SessionLocal()
+    db = await get_async_session()
     employees = db.query(Employee).filter(Employee.is_active == True).offset((current_page - 1) * page_size).limit(page_size).all()
     if len(employees) == 0:
         raise HTTPException(status_code=404, detail="There is no employees")
@@ -51,7 +42,7 @@ async def get_employees(current_page: int = 1, page_size: int = 10):
 # Сохранить информацию о сотруднике
 @app.post("/employee", response_model=EmployeeResponse)
 async def create_employee(employee: EmployeeCreateUpdate):
-    db = SessionLocal()
+    db = await get_async_session()
     existing_employee = db.query(Employee).filter(Employee.id == employee.id).first()
     if existing_employee:
         db.delete(existing_employee)
