@@ -1,3 +1,6 @@
+from models.EmployeeModels import Employee, EmployeeResponse, EmployeeCreateUpdate
+
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine
@@ -12,12 +15,12 @@ app = FastAPI()
 
 
 # Подключение к базе данных PostgreSQL
-DATABASE_URL = "postgresql://employeeapi:restapi@localhost/postgres"
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+#DATABASE_URL = "postgresql://employeeapi:restapi@localhost/postgres"
+#engine = create_engine(DATABASE_URL)
+#SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Создание таблицы в базе данных
-Base.metadata.create_all(bind=engine)
+#Base.metadata.create_all(bind=engine)
 
 # Логгирование
 @app.middleware("http://127.0.0.1:8000")

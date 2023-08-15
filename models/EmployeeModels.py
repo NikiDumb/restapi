@@ -1,8 +1,10 @@
 from pydantic import BaseModel, field_validator
 from typing import Optional
-from sqlalchemy import Column, Integer, String, Date, Boolean
+from sqlalchemy import Column, Integer, String, Date, Boolean, MetaData
 from sqlalchemy.orm import DeclarativeBase
 
+
+metadata = MetaData()
 # Базовая модель
 class Base(DeclarativeBase):
     pass
@@ -10,6 +12,7 @@ class Base(DeclarativeBase):
 # Модель данных для сотрудника
 class Employee(Base):
     __tablename__ = "employees"
+    metadata
     id = Column(String, primary_key=True, index=True)
     role = Column(String)
     email = Column(String)
