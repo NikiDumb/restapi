@@ -44,35 +44,50 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        compare_type=True,
     )
 
     with context.begin_transaction():
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
+def do_run_migrations(connection: Connection) -> None:
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        compare_type=True,
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+async def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+    data_base_url = context.get_tag_argument()
+    connectable = create_async_engine(
+        data_base_url if data_base_url else app_config.db_url,
     )
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
 
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+    await connectable.dispose()
 
-        with context.begin_transaction():
-            context.run_migrations()
 
+try:
+    loop = asyncio.get_running_loop()
+except RuntimeError:  # 'RuntimeError: There is no current event loop...'
+    loop = None
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    run_migrations_online()
+    if loop and loop.is_running():
+        tsk = loop.create_task(run_migrations_online())
+    else:
+        asyncio.run(run_migrations_online())

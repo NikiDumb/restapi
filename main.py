@@ -25,7 +25,7 @@ async def log_requests(request, call_next):
 async def get_employee(id: str):
     valid_id = EmployeeCreateUpdate.validate_passport_id(id) #отдает 500 а не 422
     db = await get_async_session()
-    employee = db.query(Employee).filter(Employee.id == valid_id and Employee.is_active == True).first()
+    employee = db.query(Employee).filter(Employee.id == valid_id and Employee.is_active == True)
     if employee is None:
         raise HTTPException(status_code=404, detail="Employee not found")
     return employee
